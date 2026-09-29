@@ -1,122 +1,114 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import styles from'./app.module.scss';
+import {useState} from "react";
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+    <Myapp2 />
   )
 }
 
-export default App
+function Myapp2() {
+  const [xIsNext, setXIsNext] = useState(true);
+  const [squares, setSquares] = useState(Array(9).fill(null));
+  console.log('1');
+
+  function handleClick(i: number) {
+    // すでに値が入っているのであればreturn ＊これで上書きされない
+    // すでに勝敗が決まっているのであれば、return ＊これ以上アイコンをおけない
+    if (squares[i] || calculateWinner(squares)) {
+      return;
+    }
+    // 配列をコピーする
+    console.log('2');
+    const nextSquares = [...squares];
+    // 以下の書き方もOK！sliceは、どこからどこまでをコピーするか引数を指定できる。
+    // 引数を指定していない場合は、全量をコピーする
+    // const nextSquares = squares.slice();
+    nextSquares[i] = xIsNext ? 'X' : 'O';
+    setSquares(nextSquares);
+    setXIsNext(!xIsNext);
+    console.log('3');
+    console.log('4');
+  }
+  console.log('6');
+
+  const player = calculateWinner(squares) ? `勝者: ${calculateWinner(squares)}` : `次の人: ${xIsNext ? 'X' : 'O'}`;
+
+  return (
+    <>
+      <h1>三目ならべ</h1>
+      <div className={styles.player}>{player}</div>
+      <div className={styles.boardRow}>
+        {/* 忘れそうなのでメモ。
+        onSquareClick={handleClick(0)}  -->これだと、クリックされた時ではなく今この瞬間に実行される
+        onSquareClick={() => handleClick(0)}  -->これは、クリックしたタイミングで実行してねという関数を渡している*/}
+        <Square value={squares[0]} onSquareClick={() => handleClick(0)} />
+        <Square value={squares[1]} onSquareClick={() => handleClick(1)} />
+        <Square value={squares[2]} onSquareClick={() => handleClick(2)} />
+      </div>
+      <div className={styles.boardRow}>
+        <Square value={squares[3]} onSquareClick={() => handleClick(3)} />
+        <Square value={squares[4]} onSquareClick={() => handleClick(4)} />
+        <Square value={squares[5]} onSquareClick={() => handleClick(5)} />
+      </div>
+      <div className={styles.boardRow}>
+        <Square value={squares[6]} onSquareClick={() => handleClick(6)} />
+        <Square value={squares[7]} onSquareClick={() => handleClick(7)} />
+        <Square value={squares[8]} onSquareClick={() => handleClick(8)} />
+      </div>
+      <div>
+        <button onClick={handleRestart}>Restart</button>
+      </div>
+    </>
+  );
+
+  // リセット
+  function handleRestart() {
+    setSquares(Array(9).fill(null));
+    setXIsNext(true);
+  }
+}
+
+type SquareProps = {
+  value: string | null;
+  onSquareClick: () => void;
+};
+
+function Square({ value, onSquareClick }: SquareProps) {
+  // const [value, setValue] = useState<string | null>(null);
+  console.log('5');
+  /*
+  function handleClick() {
+    console.log('clicked!');
+    setValue('X');
+  }
+   */
+
+  return (
+    <button className={styles.square} onClick={onSquareClick}>
+      {value}
+    </button>
+  );
+}
+
+function calculateWinner(squares: (string | null)[]): string | null {
+  const lines = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6],
+  ];
+  for (let i = 0; i < lines.length; i++) {
+    const [a, b, c] = lines[i];
+    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+      return squares[a];
+    }
+  }
+  return null;
+}
+
+export default App;
