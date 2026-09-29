@@ -1,6 +1,11 @@
 import styles from'./app.module.scss';
 import {useState} from "react";
 
+type NumberProps = {
+  min: number;
+  max: number;
+};
+
 function App() {
   return (
     <Myapp2 />
@@ -36,7 +41,9 @@ function Myapp2() {
 
   return (
     <>
-      <h1>三目ならべ</h1>
+      <h1>まるばつゲーム</h1>
+      <div>何マスでゲームする？<NumberSelect min={3} max={9} /></div>
+      <hr />
       <div className={styles.player}>{player}</div>
       <div className={styles.boardRow}>
         {/* 忘れそうなのでメモ。
@@ -112,3 +119,21 @@ function calculateWinner(squares: (string | null)[]): string | null {
 }
 
 export default App;
+
+function NumberSelect({min, max}: NumberProps) {
+  const [value, setValue] = useState<number>(min);
+  return (
+      <select className={styles.number}
+      value={value}
+      onChange={(e) =>
+        setValue(Number(e.currentTarget.value))
+      }
+      >
+        {[...Array(max - min + 1)].map((_, i) => (
+          <option key={i} value={i + min}>
+            {i + min}
+          </option>
+        ))}
+      </select>
+  );
+}
