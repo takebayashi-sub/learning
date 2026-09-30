@@ -5,20 +5,19 @@ export default function App() {
     const min = 3;
     const max = 9;
     const [xIsNext, setXIsNext] = useState(true);
-    const [squares, setSquares] = useState(Array(9).fill(null));
-    //const [VariableSquares, setVariableSquares] = useState(Array(max-min+1).fill(null));
     const [gridSize, setGridSize] = useState(0);
+    const [squares, setSquares] = useState(Array(gridSize * gridSize).fill(null));
 
-    console.log('1');
+    console.log('gridSize', gridSize);
 
     function handleClick(i: number) {
+        console.log('click');
         // すでに値が入っているのであればreturn ＊これで上書きされない
         // すでに勝敗が決まっているのであれば、return ＊これ以上アイコンをおけない
         if (squares[i] || calculateWinner(squares)) {
             return;
         }
         // 配列をコピーする
-        console.log('2');
         const nextSquares = [...squares];
         // 以下の書き方もOK！sliceは、どこからどこまでをコピーするか引数を指定できる。
         // 引数を指定していない場合は、全量をコピーする
@@ -26,17 +25,17 @@ export default function App() {
         nextSquares[i] = xIsNext ? 'X' : 'O';
         setSquares(nextSquares);
         setXIsNext(!xIsNext);
-        console.log('3');
-        console.log('4');
+        console.log('clicked', squares);
     }
-
-    console.log('6');
 
     const player = calculateWinner(squares) ? `勝者: ${calculateWinner(squares)}` : `次の人: ${xIsNext ? 'X' : 'O'}`;
 
     function handleSizeChange(event: React.ChangeEvent<HTMLSelectElement>) {
         const newSize = Number(event.target.value);
         setGridSize(newSize);
+        setSquares(Array(newSize * newSize).fill(null));
+        setXIsNext(true);
+        console.log('size changed', squares);
     }
 
     return (
@@ -59,32 +58,15 @@ export default function App() {
             <div className={styles.player}>{player}
                 <button onClick={handleRestart}>Restart</button>
             </div>
-            <div className={styles.boardRow}>
-                {/* 忘れそうなのでメモ。
-        onSquareClick={handleClick(0)}  -->これだと、クリックされた時ではなく今この瞬間に実行される
-        onSquareClick={() => handleClick(0)}  -->これは、クリックしたタイミングで実行してねという関数を渡している*/}
-                <Square value={squares[0]} onSquareClick={() => handleClick(0)}/>
-                <Square value={squares[1]} onSquareClick={() => handleClick(1)}/>
-                <Square value={squares[2]} onSquareClick={() => handleClick(2)}/>
-            </div>
-            <div className={styles.boardRow}>
-                <Square value={squares[3]} onSquareClick={() => handleClick(3)}/>
-                <Square value={squares[4]} onSquareClick={() => handleClick(4)}/>
-                <Square value={squares[5]} onSquareClick={() => handleClick(5)}/>
-            </div>
-            <div className={styles.boardRow}>
-                <Square value={squares[6]} onSquareClick={() => handleClick(6)}/>
-                <Square value={squares[7]} onSquareClick={() => handleClick(7)}/>
-                <Square value={squares[8]} onSquareClick={() => handleClick(8)}/>
-            </div>
+
             <hr/>
-            <CreateBoard size={gridSize} onSquareClick={() => handleClick(1)}/>
+            <CreateBoard size={gridSize} variableSquare={squares} onSquareClick={handleClick}/>
         </>
     );
 
     // リセット
     function handleRestart() {
-        setSquares(Array(9).fill(null));
+        setSquares(Array(gridSize * gridSize).fill(null));
         setXIsNext(true);
     }
 }
@@ -96,14 +78,14 @@ type SquareProps = {
 
 function Square({value, onSquareClick}: SquareProps) {
     // const [value, setValue] = useState<string | null>(null);
-    console.log('5');
+
     /*
     function handleClick() {
       console.log('clicked!');
       setValue('X');
     }
      */
-
+    //console.log('value', value);
     return (
         <button className={styles.square} onClick={onSquareClick}>
             {value}
@@ -112,6 +94,7 @@ function Square({value, onSquareClick}: SquareProps) {
 }
 
 function calculateWinner(squares: (string | null)[]): string | null {
+    console.log('calculateWinner', squares);
     const lines = [
         [0, 1, 2],
         [3, 4, 5],
@@ -133,22 +116,24 @@ function calculateWinner(squares: (string | null)[]): string | null {
 
 type CreateBoardProps = {
     size: number;
-    onSquareClick: () => void;
+    variableSquare: (string | null)[];
+    onSquareClick: (index : number) => void;
 };
 
-function CreateBoard({size, onSquareClick}: CreateBoardProps) {
-    console.log('CreateBoard', size);
-    const board = Array(size * size).fill(null);
-    console.log('board', board);
+function CreateBoard({size, variableSquare, onSquareClick}: CreateBoardProps) {
+    console.log('CreateBoardSize', size);
+    console.log('createBoard', variableSquare);
     return (
         <div
             className={styles.variableSquare}
             style={{'--grid-size': size}  as React.CSSProperties}
         >
-            {Array(size * size).fill(null).map((value, index) => (
-                <button key={index} className={styles.square} onClick={onSquareClick}>
-            {value}
-        </button>
+            {Array.from({ length: size * size }).map((_, index) => (
+                <Square
+                    key={index}
+                    value={variableSquare[index]}
+                    onSquareClick={() => onSquareClick(index)}
+                />
             ))}
         </div>
     )
