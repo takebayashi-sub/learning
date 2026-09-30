@@ -6,6 +6,7 @@ export default function App() {
     const max = 9;
     const [xIsNext, setXIsNext] = useState(true);
     const [squares, setSquares] = useState(Array(9).fill(null));
+    //const [VariableSquares, setVariableSquares] = useState(Array(max-min+1).fill(null));
     const [gridSize, setGridSize] = useState(0);
 
     console.log('1');
@@ -46,6 +47,7 @@ export default function App() {
                         value={gridSize}
                         onChange={handleSizeChange}
                 >
+                    <option value={0}>選択してね</option>
                     {[...Array(max - min + 1)].map((_, i) => (
                         <option key={i} value={i + min}>
                             {i + min} x {i + min}
@@ -75,8 +77,8 @@ export default function App() {
                 <Square value={squares[7]} onSquareClick={() => handleClick(7)}/>
                 <Square value={squares[8]} onSquareClick={() => handleClick(8)}/>
             </div>
-
-            <CreateBoard size={gridSize}/>
+            <hr/>
+            <CreateBoard size={gridSize} onSquareClick={() => handleClick(1)}/>
         </>
     );
 
@@ -129,10 +131,25 @@ function calculateWinner(squares: (string | null)[]): string | null {
     return null;
 }
 
-function CreateBoard({size}: { size: number }) {
+type CreateBoardProps = {
+    size: number;
+    onSquareClick: () => void;
+};
+
+function CreateBoard({size, onSquareClick}: CreateBoardProps) {
+    console.log('CreateBoard', size);
+    const board = Array(size * size).fill(null);
+    console.log('board', board);
     return (
-        <div>
-            {size}
+        <div
+            className={styles.variableSquare}
+            style={{'--grid-size': size}  as React.CSSProperties}
+        >
+            {Array(size * size).fill(null).map((value, index) => (
+                <button key={index} className={styles.square} onClick={onSquareClick}>
+            {value}
+        </button>
+            ))}
         </div>
     )
 }
