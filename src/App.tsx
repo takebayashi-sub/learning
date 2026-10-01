@@ -3,13 +3,13 @@ import React, { useState } from 'react';
 
 type CellValue = 'X' | 'O' | null;
 
-export function App() {
+export default function App() {
   const minBoardSize = 3;
   const maxBoardSize = 9;
   const [xIsNext, setXIsNext] = useState(true);
   const [gridSize, setGridSize] = useState(0);
   // サイズ変換するときに配列を作りなおすので、ここでは配列は空でよい（コストになる）
-  const [squares, setSquares] = useState<CellValue[]>(Array(gridSize * gridSize).fill(null));
+  const [squares, setSquares] = useState<CellValue[]>(Array().fill(null));
 
   console.log('gridSize', gridSize);
 
@@ -34,14 +34,14 @@ export function App() {
   const player = calculateWinner(squares) ? `勝者: ${calculateWinner(squares)}` : `次の人: ${xIsNext ? 'X' : 'O'}`;
 
   // これもアロー関数に変えて
-  function handleSizeChange(event: React.ChangeEvent<HTMLSelectElement>) {
+  const handleSizeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     // ここに確認ダイアログをいれてもよし　OKならすすむ
     const newSize = Number(event.target.value);
     setGridSize(newSize);
     setSquares(Array(newSize * newSize).fill(null));
     setXIsNext(true);
     console.log('size changed', squares);
-  }
+  };
 
   //　関数内でfunctionはやめて、アロー関数で書いた方がよい。それと、使う関数は使う箇所よりも前に定義しておく。
 
@@ -59,7 +59,7 @@ export function App() {
       <div>
         何マスでゲームする？
         <select className={styles.number} value={gridSize} onChange={handleSizeChange}>
-          <option value={0}>選択してね</option>
+          {!gridSize && <option value={0}>選択してね</option>}
           {/* i、min、maxは何の変数かわからないので、誰がみてもわかる変数名をつける */}
           {[...Array(maxBoardSize - minBoardSize + 1)].map((_, index) => (
             <option key={index} value={index + minBoardSize}>
@@ -75,7 +75,7 @@ export function App() {
       </div>
 
       <hr />
-      <CreateBoard size={gridSize} variableSquare={squares} onSquareClick={handleClick} />
+      <Board size={gridSize} variableSquare={squares} onSquareClick={handleClick} />
     </>
   );
 }
@@ -165,7 +165,7 @@ type CreateBoardProps = {
 
 // CreateBoardはCreateが動詞なので、他の名詞がよい　Reactコンポーネントなので、処理の意味が伝わらない、差異がある
 // Boardとか、GameBoardとかが適切
-function CreateBoard({ size, variableSquare, onSquareClick }: CreateBoardProps) {
+function Board({ size, variableSquare, onSquareClick }: CreateBoardProps) {
   console.log('CreateBoardSize', size);
   console.log('createBoard', variableSquare);
 
