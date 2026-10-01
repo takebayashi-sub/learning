@@ -3,9 +3,9 @@ import React, { useState } from 'react';
 
 type CellValue = 'X' | 'O' | null;
 
-export default function App() {
-  const min = 3;
-  const max = 9;
+export function App() {
+  const minBoardSize = 3;
+  const maxBoardSize = 9;
   const [xIsNext, setXIsNext] = useState(true);
   const [gridSize, setGridSize] = useState(0);
   // サイズ変換するときに配列を作りなおすので、ここでは配列は空でよい（コストになる）
@@ -61,9 +61,9 @@ export default function App() {
         <select className={styles.number} value={gridSize} onChange={handleSizeChange}>
           <option value={0}>選択してね</option>
           {/* i、min、maxは何の変数かわからないので、誰がみてもわかる変数名をつける */}
-          {[...Array(max - min + 1)].map((_, i) => (
-            <option key={i} value={i + min}>
-              {i + min} x {i + min}
+          {[...Array(maxBoardSize - minBoardSize + 1)].map((_, index) => (
+            <option key={index} value={index + minBoardSize}>
+              {index + minBoardSize} x {index + minBoardSize}
             </option>
           ))}
         </select>
@@ -107,40 +107,40 @@ function calculateWinner(squares: CellValue[]): CellValue {
 
   // 可変の勝者判定 いったん３を指定してやってみる
   const gridSize = 3;
-  const lines2: CellValue[][] = [];
+  const lines: CellValue[][] = [];
   // 横ループ
-  for (let i = 0; i <= gridSize * gridSize - gridSize; i += gridSize) {
+  for (let row = 0; row <= gridSize * gridSize - gridSize; row += gridSize) {
     const line: CellValue[] = [];
     console.log('calculateWinner', gridSize);
-    for (let j = 0; j < gridSize; j++) {
-      line.push(squares[i + j]);
+    for (let column = 0; column < gridSize; column++) {
+      line.push(squares[row + column]);
       console.log('line', line);
     }
-    lines2.push(line);
-    console.log('Array lines', lines2);
+    lines.push(line);
+    console.log('Array lines', lines);
   }
 
   // 縦ループ
-  for (let i = 0; i < gridSize; i++) {
+  for (let column = 0; column < gridSize; column++) {
     const line: CellValue[] = [];
-    for (let j = 0; j <= gridSize * gridSize - gridSize; j += gridSize) {
-      line.push(squares[j + i]);
+    for (let row = 0; row <= gridSize * gridSize - gridSize; row += gridSize) {
+      line.push(squares[row + column]);
       console.log('line', line);
     }
-    lines2.push(line);
-    console.log('Array lines', lines2);
+    lines.push(line);
+    console.log('Array lines', lines);
   }
 
   // ななめ　左上->右下
-  const line3: CellValue[] = [];
+  const tempLine: CellValue[] = [];
 
   for (let i = 0; i < gridSize * gridSize; i += gridSize + 1) {
-    line3.push(squares[i]);
+    tempLine.push(squares[i]);
   }
-  lines2.push(line3);
-  console.log('Array lines', lines2);
+  lines.push(tempLine);
+  console.log('Array lines', lines);
 
-  // letも書き換えることができてしまうので、なるべくつかわない
+  // letは変数を書き換えれてしまうので、なるべくつかわない
   // forのかわりにmapやfilterをつかうことでletを定義しなくてよいので、より安全
 
   // JavaScriptは、forループはなるべく使わないほうがいい
