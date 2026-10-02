@@ -2,22 +2,24 @@ import styles from './app.module.scss';
 import React, { useState } from 'react';
 
 type CellValue = 'X' | 'O' | null;
+type Squares = CellValue[][];
 
 export default function App() {
   const minBoardSize = 3;
   const maxBoardSize = 9;
   const [xIsNext, setXIsNext] = useState(true);
+  const [isGameInProgress, setIsGameInProgress] = useState(false);
   const [gridSize, setGridSize] = useState(0);
   // サイズ変換するときに配列を作りなおすので、ここでは配列は空でよい（コストになる）
-  const [squares, setSquares] = useState<CellValue[]>(Array().fill(null));
+  const [squares, setSquares] = useState<Squares>(Array.from({ length: gridSize }, () => Array(gridSize).fill(null)));
 
   console.log('gridSize', gridSize);
 
-  function handleClick(i: number) {
+  const handleClick = (row: number, col: number) => {
     console.log('click');
     // すでに値が入っているのであればreturn ＊これで上書きされない
     // すでに勝敗が決まっているのであれば、return ＊これ以上アイコンをおけない
-    if (squares[i] || calculateWinner(squares)) {
+    if (squares[row][col] || calculateWinner(squares)) {
       return;
     }
     // 配列をコピーする
@@ -25,11 +27,14 @@ export default function App() {
     // 以下の書き方もOK！sliceは、どこからどこまでをコピーするか引数を指定できる。
     // 引数を指定していない場合は、全量をコピーする
     // const nextSquares = squares.slice();
-    nextSquares[i] = xIsNext ? 'X' : 'O';
+    nextSquares[row][col] = xIsNext ? 'X' : 'O';
     setSquares(nextSquares);
     setXIsNext(!xIsNext);
+    if (!isGameInProgress) {
+      setIsGameInProgress(true);
+    }
     console.log('clicked', squares);
-  }
+  };
 
   const player = calculateWinner(squares) ? `勝者: ${calculateWinner(squares)}` : `次の人: ${xIsNext ? 'X' : 'O'}`;
 
@@ -40,7 +45,7 @@ export default function App() {
     // 初回はサイズ変更時に、このダイアログは出さない
     if (gridSize) {
       // ゲーム中であれば、リセットしてよいか聞く
-      if (!squares.every((square) => square === null)) {
+      if (isGameInProgress) {
         console.log('size changed', squares);
         const result = window.confirm('サイズを変更するとゲームがリセットされます。\nよろしいですか？');
         if (!result) {
@@ -51,8 +56,9 @@ export default function App() {
 
     const newSize = Number(event.target.value);
     setGridSize(newSize);
-    setSquares(Array(newSize * newSize).fill(null));
+    setSquares(Array.from({ length: newSize }, () => Array(newSize).fill(null)));
     setXIsNext(true);
+    setIsGameInProgress(false);
     console.log('size changed', squares);
   };
 
@@ -60,8 +66,9 @@ export default function App() {
 
   // リセット
   const handleRestart = () => {
-    setSquares(Array(gridSize * gridSize).fill(null));
+    setSquares(Array.from({ length: gridSize }, () => Array(gridSize).fill(null)));
     setXIsNext(true);
+    setIsGameInProgress(false);
   };
 
   // gridSizeが存在する１以上のときは、選択するを表示しない処理があるとよい！
@@ -115,43 +122,12 @@ function Square({ value, onSquareClick }: SquareProps) {
   );
 }
 
-function calculateWinner(squares: CellValue[]): CellValue {
+function calculateWinner(squares: Squares): CellValue {
   console.log('calculateWinner', squares);
 
   // 可変の勝者判定 いったん３を指定してやってみる
-  const gridSize = 3;
-  const lines: CellValue[][] = [];
-  // 横ループ
-  for (let row = 0; row <= gridSize * gridSize - gridSize; row += gridSize) {
-    const line: CellValue[] = [];
-    console.log('calculateWinner', gridSize);
-    for (let column = 0; column < gridSize; column++) {
-      line.push(squares[row + column]);
-      console.log('line', line);
-    }
-    lines.push(line);
-    console.log('Array lines', lines);
-  }
-
-  // 縦ループ
-  for (let column = 0; column < gridSize; column++) {
-    const line: CellValue[] = [];
-    for (let row = 0; row <= gridSize * gridSize - gridSize; row += gridSize) {
-      line.push(squares[row + column]);
-      console.log('line', line);
-    }
-    lines.push(line);
-    console.log('Array lines', lines);
-  }
-
-  // ななめ　左上->右下
-  const tempLine: CellValue[] = [];
-
-  for (let i = 0; i < gridSize * gridSize; i += gridSize + 1) {
-    tempLine.push(squares[i]);
-  }
-  lines.push(tempLine);
-  console.log('Array lines', lines);
+  // const gridSize = 3;
+  // const lines: CellValue[][] = [];
 
   // letは変数を書き換えれてしまうので、なるべくつかわない
   // forのかわりにmapやfilterをつかうことでletを定義しなくてよいので、より安全
@@ -172,8 +148,8 @@ function calculateWinner(squares: CellValue[]): CellValue {
 // ここではX|O|nullのみを許容するので、そのように定義することで不具合を防ぐことができる
 type CreateBoardProps = {
   size: number;
-  variableSquare: CellValue[];
-  onSquareClick: (index: number) => void;
+  variableSquare: Squares;
+  onSquareClick: (row: number, col: number) => void;
 };
 
 // CreateBoardはCreateが動詞なので、他の名詞がよい　Reactコンポーネントなので、処理の意味が伝わらない、差異がある
@@ -187,9 +163,15 @@ function Board({ size, variableSquare, onSquareClick }: CreateBoardProps) {
   // variableSquareを渡してるから、そもそもそれの値を使えばよしで、新しくArrayを作る必要なし
   return (
     <div className={styles.variableSquare} style={{ '--grid-size': size } as React.CSSProperties}>
-      {variableSquare.map((cell, index) => (
-        <Square key={index} value={cell} onSquareClick={() => onSquareClick(index)} />
-      ))}
+      {variableSquare.map((row, rowIndex) =>
+        row.map((cell, colIndex) => (
+          <Square
+            key={`${rowIndex}-${colIndex}`}
+            value={cell}
+            onSquareClick={() => onSquareClick(rowIndex, colIndex)}
+          />
+        )),
+      )}
     </div>
   );
 }
