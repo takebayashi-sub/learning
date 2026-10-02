@@ -36,6 +36,19 @@ export default function App() {
   // これもアロー関数に変えて
   const handleSizeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     // ここに確認ダイアログをいれてもよし　OKならすすむ
+
+    // 初回はサイズ変更時に、このダイアログは出さない
+    if (gridSize) {
+      // ゲーム中であれば、リセットしてよいか聞く
+      if (!squares.every((square) => square === null)) {
+        console.log('size changed', squares);
+        const result = window.confirm('サイズを変更するとゲームがリセットされます。\nよろしいですか？');
+        if (!result) {
+          return;
+        }
+      }
+    }
+
     const newSize = Number(event.target.value);
     setGridSize(newSize);
     setSquares(Array(newSize * newSize).fill(null));
