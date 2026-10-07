@@ -4,74 +4,121 @@ import React, { useState } from 'react';
 type CellValue = 'X' | 'O' | null;
 type Squares = CellValue[][];
 
+const GameStatus = {
+  READY: 'ゲーム前',
+  PLAYING: 'ゲーム中',
+  FINISHED: 'ゲーム終了',
+};
+
 export default function App() {
   const minBoardSize = 3;
   const maxBoardSize = 9;
+  const [gameStatus, setGameStatus] = useState(GameStatus.READY);
   const [xIsNext, setXIsNext] = useState(true);
-  const [isGameInProgress, setIsGameInProgress] = useState(false);
   const [gridSize, setGridSize] = useState(0);
   // サイズ変換するときに配列を作りなおすので、ここでは配列は空でよい（コストになる）
-  const [squares, setSquares] = useState<Squares>(Array.from({ length: gridSize }, () => Array(gridSize).fill(null)));
+  const [squares, setSquares] = useState<Squares>([]);
 
-  console.log('gridSize', gridSize);
-
+  // handleClick,handleRestartから呼ばれるので前に追加
+  const Restart = (newSize: number) => {
+    setSquares(Array.from({ length: newSize }, () => Array(newSize).fill(null)));
+    setXIsNext(true);
+    setGameStatus(GameStatus.READY);
+  };
+  // row.colは範囲外が渡ってきた時にエラーになるから、範囲内であることの確認を入れた方がよい
+  //
   const handleClick = (row: number, col: number) => {
-    console.log('click');
     // すでに値が入っているのであればreturn ＊これで上書きされない
     // すでに勝敗が決まっているのであれば、return ＊これ以上アイコンをおけない
-    if (squares[row][col] || calculateWinner(squares)) {
+
+    // ゲーム前、中、終了を持てばここでも判定につかえるね
+    // ステータスと勝者の情報を合体する手もある
+    if (squares[row]?.[col] !== null || gameStatus === GameStatus.FINISHED) {
       return;
     }
     // 配列をコピーする
-    const nextSquares = [...squares];
+    // 浅いコピー　しらべておく
+    // 一階層ずつ浅いコピーを行う。structuredCloneは中にあるオブジェクトも含めて全てコピーする
+    const nextSquares = squares.map((row) => [...row]);
+
     // 以下の書き方もOK！sliceは、どこからどこまでをコピーするか引数を指定できる。
     // 引数を指定していない場合は、全量をコピーする
     // const nextSquares = squares.slice();
     nextSquares[row][col] = xIsNext ? 'X' : 'O';
+
+    // このタイミングで勝者がきまるからここで勝者判定されればよいね
+    // ステータスも更新する
+    const winner = calculateWinner(nextSquares, gridSize);
+    if (winner) {
+      setGameStatus(GameStatus.FINISHED);
+    } else {
+      setGameStatus(GameStatus.PLAYING);
+    }
+
     setSquares(nextSquares);
     setXIsNext(!xIsNext);
-    if (!isGameInProgress) {
-      setIsGameInProgress(true);
-    }
-    console.log('clicked', squares);
+    // trueをtrueにしても再レンダリングしないから判断いらんかも
+    // isGameInProgressというフラグじゃなくて、stateをもったほうが実務的　ゲーム前、中、終了
   };
-
-  const player = calculateWinner(squares) ? `勝者: ${calculateWinner(squares)}` : `次の人: ${xIsNext ? 'X' : 'O'}`;
 
   // これもアロー関数に変えて
   const handleSizeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     // ここに確認ダイアログをいれてもよし　OKならすすむ
 
     // 初回はサイズ変更時に、このダイアログは出さない
-    if (gridSize) {
-      // ゲーム中であれば、リセットしてよいか聞く
-      if (isGameInProgress) {
-        console.log('size changed', squares);
-        const result = window.confirm('サイズを変更するとゲームがリセットされます。\nよろしいですか？');
-        if (!result) {
-          return;
-        }
+
+    // そもそもこれいらないね
+
+    // ゲーム中であれば、リセットしてよいか聞く
+    // ゲーム終了のとき、この確認いらないっていう仕様だとこれではダメだね
+    // ここでもゲームステータスを使える
+    if (gameStatus === GameStatus.PLAYING) {
+      const result = window.confirm('サイズを変更するとゲームがリセットされます。\nよろしいですか？');
+      if (!result) {
+        return;
       }
     }
 
+    // gridSizeがたぶん前のままだからlogで確認してみること
+
     const newSize = Number(event.target.value);
     setGridSize(newSize);
-    setSquares(Array.from({ length: newSize }, () => Array(newSize).fill(null)));
-    setXIsNext(true);
-    setIsGameInProgress(false);
-    console.log('size changed', squares);
+
+    // handleRestartよべばいい、同じコード書いてるよ
+    // 呼ぶ関数は前に書くことを忘れないで
+
+    Restart(newSize);
   };
 
   //　関数内でfunctionはやめて、アロー関数で書いた方がよい。それと、使う関数は使う箇所よりも前に定義しておく。
 
   // リセット
-  const handleRestart = () => {
-    setSquares(Array.from({ length: gridSize }, () => Array(gridSize).fill(null)));
-    setXIsNext(true);
-    setIsGameInProgress(false);
+  // 引数いらなくない？
+  const handleRestart = (gridSize: number) => {
+    // ここでも確認ダイアログだすなら、Restart関数をもうひとつつくって双方でよぶ
+    // gridSizeを引数で->Restart関数が何をするものなのかが明確になる
+
+    if (gameStatus === GameStatus.PLAYING) {
+      const result = window.confirm('ゲームをリセットしてもよろしいですか？');
+      if (!result) {
+        return;
+      }
+    }
+
+    Restart(gridSize);
   };
 
   // gridSizeが存在する１以上のときは、選択するを表示しない処理があるとよい！
+
+  // 何度もおなじ関数をよんでいるので、むだがおおい
+  // レンダリングのたびにやるんじゃなくて、クリックしたタイミングだけで判断したらいいんでは
+
+  // アロー関数の間にあったのでここに持ってきた
+
+  // winnerをhandleClickの中にもってしまっているから、ここでも再計算しないといけないことになっている
+  // handleClick外にwinnerをもっておく　win/loseでステータスを持つ場合もあるよ
+  const winner = squares ? calculateWinner(squares, gridSize) : null;
+  const player = winner ? `勝者: ${winner}` : `次の人: ${xIsNext ? 'X' : 'O'}`;
 
   return (
     <>
@@ -91,7 +138,7 @@ export default function App() {
       <hr />
       <div className={styles.player}>
         {player}
-        <button onClick={handleRestart}>Restart</button>
+        <button onClick={() => handleRestart(gridSize)}>Restart</button>
       </div>
 
       <hr />
@@ -108,13 +155,6 @@ type SquareProps = {
 function Square({ value, onSquareClick }: SquareProps) {
   // const [value, setValue] = useState<string | null>(null);
 
-  /*
-    function handleClick() {
-      console.log('clicked!');
-      setValue('X');
-    }
-     */
-  //console.log('value', value);
   return (
     <button className={styles.square} onClick={onSquareClick}>
       {value}
@@ -122,26 +162,25 @@ function Square({ value, onSquareClick }: SquareProps) {
   );
 }
 
-function calculateWinner(squares: Squares): CellValue {
-  console.log('calculateWinner', squares);
+function calculateWinner(squares: Squares, gridSize: number): CellValue {
+  if (gridSize <= 0 || squares.length === 0 || !squares[0]) {
+    return null;
+  }
 
-  // 可変の勝者判定 いったん３を指定してやってみる
-  // const gridSize = 3;
-  // const lines: CellValue[][] = [];
+  // 盤面の中をクリックしたときだけこれが呼ばれることを確認してみる
 
-  // letは変数を書き換えれてしまうので、なるべくつかわない
-  // forのかわりにmapやfilterをつかうことでletを定義しなくてよいので、より安全
+  // 横（各行）、縦（各列）、斜め（2本）のすべてのラインを配列として抽出
+  const rows = squares;
+  const cols = squares[0].map((_, colIndex) => squares.map((row) => row[colIndex]));
+  const mainDiagonal = [squares.map((row, index) => row[index])];
+  const antiDiagonal = [squares.map((row, index) => row[gridSize - 1 - index])];
 
-  // JavaScriptは、forループはなるべく使わないほうがいい
-  // 必要なものだけを取り出す方法があるから、調べてみること
-  // ここのi、jもrowとか、わかりやすい変数名を
-  // const line3 = [];　もanyになっているので、明示的に型を示して。　X|O|null というように、起こりうる値のみを許容する
+  const allLines = [...rows, ...cols, ...mainDiagonal, ...antiDiagonal];
 
-  // 10x10の中でも、連続で５揃ったら勝ちとか、盤面と勝利条件を別にする　とか
-  // 盤面をスクエアだけじゃなくて縦横指定でマスを可変にする　とか
-  // calculateWinnerをもっと効率よくスマートに
+  // 全マスが同じ値（かつ null ではない）ラインを探す
+  const winningLine = allLines.find((line) => line[0] !== null && line.every((cell) => cell === line[0]));
 
-  return null;
+  return winningLine ? winningLine[0] : null;
 }
 
 // 最低限の不具合を防ぐために、Typeはしっかりと明示する。string|nullだけではなくて、
@@ -155,23 +194,44 @@ type CreateBoardProps = {
 // CreateBoardはCreateが動詞なので、他の名詞がよい　Reactコンポーネントなので、処理の意味が伝わらない、差異がある
 // Boardとか、GameBoardとかが適切
 function Board({ size, variableSquare, onSquareClick }: CreateBoardProps) {
-  console.log('CreateBoardSize', size);
-  console.log('createBoard', variableSquare);
-
   // Array.from({ length: size * size }).map　ここの書き方は他のArrayと
 
   // variableSquareを渡してるから、そもそもそれの値を使えばよしで、新しくArrayを作る必要なし
+
+  // 2次元配列になったので、ここもTableにするとか、flexboxとか、gridじゃない方法をみてみる（シンプルにできそう）
+  // cssのほうもいろいろありそうなので試してみる
+
   return (
-    <div className={styles.variableSquare} style={{ '--grid-size': size } as React.CSSProperties}>
-      {variableSquare.map((row, rowIndex) =>
-        row.map((cell, colIndex) => (
-          <Square
-            key={`${rowIndex}-${colIndex}`}
-            value={cell}
-            onSquareClick={() => onSquareClick(rowIndex, colIndex)}
-          />
-        )),
-      )}
-    </div>
+    <>
+      <div className={styles.variableSquare} style={{ '--grid-size': size } as React.CSSProperties}>
+        {variableSquare.map((row, rowIndex) =>
+          row.map((cell, colIndex) => (
+            <Square
+              key={`${rowIndex}-${colIndex}`}
+              value={cell}
+              onSquareClick={() => onSquareClick(rowIndex, colIndex)}
+            />
+          )),
+        )}
+      </div>
+      <hr />
+      {/* tableを使う方法 */}
+      <div>
+        <table className={styles.board}>
+          <tbody>
+            {variableSquare.map((row, rowIndex) => (
+              <tr key={rowIndex}>
+                {row.map((cell, colIndex) => (
+                  <td key={colIndex}>
+                    <Square value={cell} onSquareClick={() => onSquareClick(rowIndex, colIndex)} />
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {/* tableを使う方法 */}
+    </>
   );
 }
