@@ -94,7 +94,7 @@ export default function App() {
 
   // リセット
   // 引数いらなくない？
-  const handleRestart = (gridSize: number) => {
+  const handleRestart = () => {
     // ここでも確認ダイアログだすなら、Restart関数をもうひとつつくって双方でよぶ
     // gridSizeを引数で->Restart関数が何をするものなのかが明確になる
 
@@ -138,7 +138,7 @@ export default function App() {
       <hr />
       <div className={styles.player}>
         {player}
-        <button onClick={() => handleRestart(gridSize)}>Restart</button>
+        <button onClick={handleRestart}>Restart</button>
       </div>
 
       <hr />
@@ -157,6 +157,16 @@ function Square({ value, onSquareClick }: SquareProps) {
 
   return (
     <button className={styles.square} onClick={onSquareClick}>
+      {value}
+    </button>
+  );
+}
+
+function SquareInline({ value, onSquareClick }: SquareProps) {
+  // const [value, setValue] = useState<string | null>(null);
+
+  return (
+    <button className={styles.squareInline} onClick={onSquareClick}>
       {value}
     </button>
   );
@@ -231,7 +241,28 @@ function Board({ size, variableSquare, onSquareClick }: CreateBoardProps) {
           </tbody>
         </table>
       </div>
-      {/* tableを使う方法 */}
+      <hr />
+      {/* display:flexを使う方法 */}
+      <div className={styles.boardFlex}>
+        {variableSquare.map((row, rowIndex) => (
+          <div key={rowIndex} className={styles.rowFlex}>
+            {row.map((cell, colIndex) => (
+              <Square key={colIndex} value={cell} onSquareClick={() => onSquareClick(rowIndex, colIndex)} />
+            ))}
+          </div>
+        ))}
+      </div>
+      {/* inline-blockを使う方法 */}
+      <hr />
+      <div className={styles.boardInline}>
+        {variableSquare.map((row, rowIndex) => (
+          <div key={rowIndex} className={styles.rowInline}>
+            {row.map((cell, colIndex) => (
+              <SquareInline key={colIndex} value={cell} onSquareClick={() => onSquareClick(rowIndex, colIndex)} />
+            ))}
+          </div>
+        ))}
+      </div>
     </>
   );
 }

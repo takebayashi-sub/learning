@@ -113,3 +113,58 @@ body {
     padding: 0;
   }
 }
+
+.boardFlex {
+  display: flex;
+  flex-direction: column;
+}
+
+.rowFlex {
+  display: flex;
+}
+
+.rowInline {
+  font-size: 0;
+  line-height: 0;
+}
+
+.cellInline {
+  display: inline-block;
+  width: 60px;
+  height: 60px;
+  padding: 0;
+}
+
+.variableSquareInline {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-size), 34px);
+
+  background: #fff;
+  border: 1px solid #999;
+  float: left;
+  font-size: 24px;
+  font-weight: bold;
+  line-height: 34px;
+  height: 34px;
+  margin-right: -1px;
+  margin-top: -1px;
+  padding: 0;
+  text-align: center;
+  width: 34px;
+}
+
+.squareInline {
+  display: inline-block;
+  vertical-align: top;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  background: #fff;
+  border: 1px solid #999;
+  font-size: 24px;
+  font-weight: bold;
+  line-height: 34px;
+  text-align: center;
+  margin-right: -1px;
+  margin-top: -1px;
+}
