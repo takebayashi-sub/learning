@@ -7,7 +7,8 @@ type Squares = CellValue[][];
 const GameStatus = {
   READY: 'ゲーム前',
   PLAYING: 'ゲーム中',
-  FINISHED: 'ゲーム終了',
+  WIN: '勝利',
+  LOSE: '負け',
 };
 
 export default function App() {
@@ -33,7 +34,7 @@ export default function App() {
 
     // ゲーム前、中、終了を持てばここでも判定につかえるね
     // ステータスと勝者の情報を合体する手もある
-    if (squares[row]?.[col] !== null || gameStatus === GameStatus.FINISHED) {
+    if (squares[row]?.[col] !== null || gameStatus === GameStatus.WIN || gameStatus === GameStatus.LOSE) {
       return;
     }
     // 配列をコピーする
@@ -49,8 +50,10 @@ export default function App() {
     // このタイミングで勝者がきまるからここで勝者判定されればよいね
     // ステータスも更新する
     const winner = calculateWinner(nextSquares, gridSize);
-    if (winner) {
-      setGameStatus(GameStatus.FINISHED);
+    if (winner === 'X') {
+      setGameStatus(GameStatus.WIN);
+    } else if (winner === 'O') {
+      setGameStatus(GameStatus.LOSE);
     } else {
       setGameStatus(GameStatus.PLAYING);
     }
@@ -117,8 +120,12 @@ export default function App() {
 
   // winnerをhandleClickの中にもってしまっているから、ここでも再計算しないといけないことになっている
   // handleClick外にwinnerをもっておく　win/loseでステータスを持つ場合もあるよ
-  const winner = squares ? calculateWinner(squares, gridSize) : null;
-  const player = winner ? `勝者: ${winner}` : `次の人: ${xIsNext ? 'X' : 'O'}`;
+  const player =
+    gameStatus === GameStatus.WIN
+      ? `あなたの勝ちです！`
+      : gameStatus === GameStatus.LOSE
+        ? 'ゲームに負けました。'
+        : `次の人: ${xIsNext ? 'X' : 'O'}`;
 
   return (
     <>
