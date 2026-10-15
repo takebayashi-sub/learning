@@ -12,7 +12,7 @@ const GameStatus = {
 };
 
 export default function App() {
-  const minBoardSize = 3;
+  const minBoardSize = 3; // 必ず３以上を設定すること（勝利ロジックとの兼ね合いで）
   const maxBoardSize = 9;
   const [gameStatus, setGameStatus] = useState(GameStatus.READY);
   const [xIsNext, setXIsNext] = useState(true);
@@ -195,9 +195,30 @@ function calculateWinner(squares: Squares, gridSize: number): CellValue {
   const allLines = [...rows, ...cols, ...mainDiagonal, ...antiDiagonal];
 
   // 全マスが同じ値（かつ null ではない）ラインを探す
-  const winningLine = allLines.find((line) => line[0] !== null && line.every((cell) => cell === line[0]));
+  // const winningLine = allLines.find((line) => line[0] !== null && line.every((cell) => cell === line[0]));
 
-  return winningLine ? winningLine[0] : null;
+  // 何個連続にするか
+  const winCount = 3;
+  //　3つ連続しているかどうかをカウントする　今見ているマスが何個連続かを見るので、１からスタート
+  let count = 1;
+
+  for (const line of allLines) {
+    for (let i = 1; i < line.length; i++) {
+      if (line[i] !== null && line[i] === line[i - 1]) {
+        // 一致したらカウントを増やす
+        count++;
+
+        if (count === winCount) {
+          return line[i];
+        }
+      } else {
+        // 一致しなくなったらリセット
+        count = 1;
+      }
+    }
+  }
+  return null;
+  // return winningLine ? winningLine[0] : null;
 }
 
 // 最低限の不具合を防ぐために、Typeはしっかりと明示する。string|nullだけではなくて、
