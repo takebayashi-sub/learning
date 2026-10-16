@@ -1,4 +1,4 @@
-import styles from '../square/square.module.scss';
+import styles from '../app.module.scss';
 
 /**
  * 共通の定義

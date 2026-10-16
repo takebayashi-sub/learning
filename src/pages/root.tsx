@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import SquareApp from './square/main.tsx';
+import RectangleApp from './rectangle/main.tsx';
 
 export function Root() {
   const [activeTab, setActiveTab] = useState('square');
@@ -10,7 +11,7 @@ export function Root() {
 
       <div>
         {activeTab === 'square' && <SquareApp />}
-        {activeTab === 'rectangle' && <div>Rectangle</div>}
+        {activeTab === 'rectangle' && <RectangleApp />}
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import styles from './square.module.scss';
+import styles from '../app.module.scss';
 import React, { useState } from 'react';
 import { type CellValue, type Squares, GameStatus, type SquareProps, Square } from '../common/common';
 
@@ -120,7 +120,7 @@ export default function SquareApp() {
 
   return (
     <>
-      <h1>まるばつゲーム</h1>
+      <h1>まるばつゲーム (正方形)</h1>
       <div>
         何マスでゲームする？
         <select className={styles.number} value={gridSize} onChange={handleSizeChange}>
