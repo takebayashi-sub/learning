@@ -1,4 +1,4 @@
-import styles from './app.module.scss';
+import styles from './square.module.scss';
 import React, { useState } from 'react';
 
 type CellValue = 'X' | 'O' | null;
@@ -11,7 +11,7 @@ const GameStatus = {
   LOSE: '負け',
 };
 
-export default function App() {
+export default function SquareApp() {
   const minBoardSize = 3; // 必ず３以上を設定すること（勝利ロジックとの兼ね合いで）
   const maxBoardSize = 9;
   const [gameStatus, setGameStatus] = useState(GameStatus.READY);
