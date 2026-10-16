@@ -1,20 +1,11 @@
 import styles from './square.module.scss';
 import React, { useState } from 'react';
-
-type CellValue = 'X' | 'O' | null;
-type Squares = CellValue[][];
-
-const GameStatus = {
-  READY: 'ゲーム前',
-  PLAYING: 'ゲーム中',
-  WIN: '勝利',
-  LOSE: '負け',
-};
+import { type CellValue, type Squares, GameStatus, type SquareProps, Square } from '../common/common';
 
 export default function SquareApp() {
   const minBoardSize = 3; // 必ず３以上を設定すること（勝利ロジックとの兼ね合いで）
   const maxBoardSize = 9;
-  const [gameStatus, setGameStatus] = useState(GameStatus.READY);
+  const [gameStatus, setGameStatus] = useState<GameStatus>(GameStatus.READY);
   const [xIsNext, setXIsNext] = useState(true);
   const [gridSize, setGridSize] = useState(0);
   // サイズ変換するときに配列を作りなおすので、ここでは配列は空でよい（コストになる）
@@ -151,21 +142,6 @@ export default function SquareApp() {
       <hr />
       <Board size={gridSize} variableSquare={squares} onSquareClick={handleClick} />
     </>
-  );
-}
-
-type SquareProps = {
-  value: CellValue;
-  onSquareClick: () => void;
-};
-
-function Square({ value, onSquareClick }: SquareProps) {
-  // const [value, setValue] = useState<string | null>(null);
-
-  return (
-    <button className={styles.square} onClick={onSquareClick}>
-      {value}
-    </button>
   );
 }
 
