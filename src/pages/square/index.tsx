@@ -1,11 +1,11 @@
 import styles from '../app.module.scss';
 import React, { useState } from 'react';
-import { type CellValue, type Squares, GameStatus, type SquareProps, Square } from '../common/common';
+import { type CellValue, type Squares, type SquareProps, Square, type GameStatus } from '../common/common';
 
-export default function SquareApp() {
+export function SquareApp() {
   const minBoardSize = 3; // 必ず３以上を設定すること（勝利ロジックとの兼ね合いで）
   const maxBoardSize = 9;
-  const [gameStatus, setGameStatus] = useState<GameStatus>(GameStatus.READY);
+  const [gameStatus, setGameStatus] = useState<GameStatus>('READY');
   const [xIsNext, setXIsNext] = useState(true);
   const [gridSize, setGridSize] = useState(0);
   // サイズ変換するときに配列を作りなおすので、ここでは配列は空でよい（コストになる）
@@ -15,7 +15,7 @@ export default function SquareApp() {
   const Restart = (newSize: number) => {
     setSquares(Array.from({ length: newSize }, () => Array(newSize).fill(null)));
     setXIsNext(true);
-    setGameStatus(GameStatus.READY);
+    setGameStatus('READY');
   };
   // row.colは範囲外が渡ってきた時にエラーになるから、範囲内であることの確認を入れた方がよい
   //
@@ -25,7 +25,8 @@ export default function SquareApp() {
 
     // ゲーム前、中、終了を持てばここでも判定につかえるね
     // ステータスと勝者の情報を合体する手もある
-    if (squares[row]?.[col] !== null || gameStatus === GameStatus.WIN || gameStatus === GameStatus.LOSE) {
+    console.log('gameStatus', gameStatus);
+    if (squares[row]?.[col] !== null || gameStatus === 'WIN' || gameStatus === 'LOSE') {
       return;
     }
     // 配列をコピーする
@@ -41,12 +42,13 @@ export default function SquareApp() {
     // このタイミングで勝者がきまるからここで勝者判定されればよいね
     // ステータスも更新する
     const winner = calculateWinner(nextSquares, gridSize);
+    console.log('calculateWinner', winner);
     if (winner === 'X') {
-      setGameStatus(GameStatus.WIN);
+      setGameStatus('WIN');
     } else if (winner === 'O') {
-      setGameStatus(GameStatus.LOSE);
+      setGameStatus('LOSE');
     } else {
-      setGameStatus(GameStatus.PLAYING);
+      setGameStatus('PLAYING');
     }
 
     setSquares(nextSquares);
@@ -56,7 +58,7 @@ export default function SquareApp() {
   };
 
   // これもアロー関数に変えて
-  const handleSizeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleGameChange = (event: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
     // ここに確認ダイアログをいれてもよし　OKならすすむ
 
     // 初回はサイズ変更時に、このダイアログは出さない
@@ -66,7 +68,7 @@ export default function SquareApp() {
     // ゲーム中であれば、リセットしてよいか聞く
     // ゲーム終了のとき、この確認いらないっていう仕様だとこれではダメだね
     // ここでもゲームステータスを使える
-    if (gameStatus === GameStatus.PLAYING) {
+    if (gameStatus === 'PLAYING') {
       const result = window.confirm('サイズを変更するとゲームがリセットされます。\nよろしいですか？');
       if (!result) {
         return;
@@ -92,7 +94,7 @@ export default function SquareApp() {
     // ここでも確認ダイアログだすなら、Restart関数をもうひとつつくって双方でよぶ
     // gridSizeを引数で->Restart関数が何をするものなのかが明確になる
 
-    if (gameStatus === GameStatus.PLAYING) {
+    if (gameStatus === 'PLAYING') {
       const result = window.confirm('ゲームをリセットしてもよろしいですか？');
       if (!result) {
         return;
@@ -112,9 +114,9 @@ export default function SquareApp() {
   // winnerをhandleClickの中にもってしまっているから、ここでも再計算しないといけないことになっている
   // handleClick外にwinnerをもっておく　win/loseでステータスを持つ場合もあるよ
   const player =
-    gameStatus === GameStatus.WIN
+    gameStatus === 'WIN'
       ? `あなたの勝ちです！`
-      : gameStatus === GameStatus.LOSE
+      : gameStatus === 'LOSE'
         ? 'ゲームに負けました。'
         : `次の人: ${xIsNext ? 'X' : 'O'}`;
 
@@ -123,7 +125,7 @@ export default function SquareApp() {
       <h1>まるばつゲーム (正方形)</h1>
       <div>
         何マスでゲームする？
-        <select className={styles.number} value={gridSize} onChange={handleSizeChange}>
+        <select className={styles.number} value={gridSize} onChange={handleGameChange}>
           {!gridSize && <option value={0}>選択してね</option>}
           {/* i、min、maxは何の変数かわからないので、誰がみてもわかる変数名をつける */}
           {[...Array(maxBoardSize - minBoardSize + 1)].map((_, index) => (
@@ -177,14 +179,16 @@ function calculateWinner(squares: Squares, gridSize: number): CellValue {
   const winCount = 3;
   //　3つ連続しているかどうかをカウントする　今見ているマスが何個連続かを見るので、１からスタート
   let count = 1;
-
+  console.log(allLines);
   for (const line of allLines) {
     for (let i = 1; i < line.length; i++) {
       if (line[i] !== null && line[i] === line[i - 1]) {
         // 一致したらカウントを増やす
         count++;
+        console.log(count);
 
         if (count === winCount) {
+          console.log('winner', line[i]);
           return line[i];
         }
       } else {
