@@ -9,14 +9,7 @@ export type Squares = CellValue[][];
 /**
  * ゲームステータス
  */
-export const GameStatus = {
-  READY: 'ゲーム前',
-  PLAYING: 'ゲーム中',
-  WIN: '勝利',
-  LOSE: '負け',
-} as const;
-
-export type GameStatus = (typeof GameStatus)[keyof typeof GameStatus];
+export type GameStatus = 'READY' | 'PLAYING' | 'WIN' | 'LOSE';
 
 /**
  * ひとつひとつのマス
