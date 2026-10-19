@@ -7,7 +7,7 @@ import { SquareApp } from './square';
 type PageType = 'square' | 'rectangle';
 export function Root() {
   // activeTabに入るものはtypeで限定することで、間違いを防ぐ
-  const [activeTab, setActiveTab] = useState<PageType>('square');
+  const [activeTab, setActiveTab] = useState<PageType>('rectangle');
   return (
     <div>
       <button onClick={() => setActiveTab('square')}>Square</button>
