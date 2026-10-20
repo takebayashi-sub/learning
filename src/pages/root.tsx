@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import RectangleApp from './rectangle';
+import { RectangleApp } from './rectangle';
 import { SquareApp } from './square';
 
 // activeTabに入るものはtypeで限定することで、間違いを防ぐ

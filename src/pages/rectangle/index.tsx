@@ -2,12 +2,17 @@ import styles from '../app.module.scss';
 import React, { useState } from 'react';
 import { type CellValue, type GameStatus, Square, type Squares } from '../common/common.tsx';
 
-export default function RectangleApp() {
+export function RectangleApp() {
+  // 定数は定数でまとめておく、定数を関数内におくのもあまりよくない　バラバラと置いておかない
+
   // グリッドの選択肢用
   const minGridSizeRow = 3;
   const maxGridSizeRow = 6;
   const minGridSizeCol = 4;
   const maxGridSizeCol = 7;
+
+  // 勝利条件を変更できるのはたてよこそれぞれ何マス以上か
+  const customWinCount = 5;
 
   // 各種State
   const [gridRowSize, setGridRowSize] = useState(0);
@@ -17,10 +22,7 @@ export default function RectangleApp() {
   const [squares, setSquares] = useState<Squares>([]);
   const [winCount, setWinCount] = useState<number>(0);
 
-  // 勝利条件を変更できるのはたてよこそれぞれ何マス以上か
-  const customWinCount = 5;
-
-  // 勝利カウントの更新
+  // 勝利カウントの更新 更新じゃなくて、resetかinitが適切　初期化しているので　countもわかりづらくてびみょ
   const updateWinCount = (row: number, col: number) => {
     const smallSize = Math.min(row, col);
     if (row >= customWinCount && col >= customWinCount) {
@@ -28,9 +30,11 @@ export default function RectangleApp() {
     } else {
       setWinCount(smallSize);
     }
+
+    // row,col,customWinCountの最小値をとればいい　customWinCountも名前びみょう
   };
 
-  // サイズ変更、リスタート時の共通初期化処理
+  // サイズ変更、リスタート時の共通初期化処理 restart
   const Restart = (newRowSize: number, newColSize: number) => {
     setSquares(Array.from({ length: newRowSize }, () => Array(newColSize).fill(null)));
     setXIsNext(true);
@@ -65,7 +69,7 @@ export default function RectangleApp() {
     setXIsNext(!xIsNext);
   };
 
-  // リセット確認
+  // リセット確認 1行でもかけるね　、かいてみる
   const confirmReset = (): boolean => {
     return window.confirm('サイズを変更するとゲームがリセットされます。\nよろしいですか？');
   };
@@ -119,6 +123,7 @@ export default function RectangleApp() {
     // gridSizeを引数で->Restart関数が何をするものなのかが明確になる
 
     if (gameStatus === 'PLAYING') {
+      // 関数をよぶようにする
       const result = window.confirm('ゲームをリセットしてもよろしいですか？');
       if (!result) {
         return;
@@ -135,6 +140,7 @@ export default function RectangleApp() {
         ? 'ゲームに負けました。'
         : `次の人: ${xIsNext ? 'X' : 'O'}`;
 
+  // {[...Array(maxGridSizeRow - minGridSizeRow + 1)].map((_, index) => (ここの動き微妙なので他の書き方考える
   return (
     <>
       <h1>まるばつゲーム (正方形＆長方形)</h1>
@@ -159,12 +165,12 @@ export default function RectangleApp() {
           ))}
         </select>
       </div>
-      {gridRowSize >= 5 && gridColSize >= 5 && (
+      {gridRowSize >= customWinCount && gridColSize >= customWinCount && (
         <div>
           <label>何個連続で勝ちとする？</label>
           <input
             type="number"
-            min={5}
+            min={customWinCount}
             max={Math.max(gridRowSize, gridColSize)}
             value={winCount}
             onChange={handleWinCountChange}
@@ -182,6 +188,7 @@ export default function RectangleApp() {
   );
 }
 
+// createやめる
 type CreateBoardProps = {
   variableSquare: Squares;
   onSquareClick: (row: number, col: number) => void;

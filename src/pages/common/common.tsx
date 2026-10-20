@@ -19,8 +19,9 @@ export type SquareProps = {
   onSquareClick: () => void;
 };
 
-export function Square({ value, onSquareClick }: SquareProps) {
+export function Square(props: SquareProps) {
   // const [value, setValue] = useState<string | null>(null);
+  const { value, onSquareClick } = props;
 
   return (
     <button className={styles.square} onClick={onSquareClick}>
