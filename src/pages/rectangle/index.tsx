@@ -17,10 +17,15 @@ export default function RectangleApp() {
   const [squares, setSquares] = useState<Squares>([]);
   const [winCount, setWinCount] = useState<number>(0);
 
+  // 勝利条件を変更できるのはたてよこそれぞれ何マス以上か
+  const customWinCount = 5;
+
   // 勝利カウントの更新
   const updateWinCount = (row: number, col: number) => {
     const smallSize = Math.min(row, col);
-    if (!(row >= 5 && col >= 5)) {
+    if (row >= customWinCount && col >= customWinCount) {
+      setWinCount(customWinCount);
+    } else {
       setWinCount(smallSize);
     }
   };
@@ -97,6 +102,17 @@ export default function RectangleApp() {
     Restart(gridRowSize, newColSize);
   };
 
+  // 勝利条件変更時の処理
+  const handleWinCountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (gameStatus === 'PLAYING') {
+      if (!confirmReset()) {
+        return;
+      }
+    }
+    setWinCount(Number(event.target.value));
+    Restart(gridRowSize, gridColSize);
+  };
+
   // リセットボタン押下時の処理
   const handleRestart = () => {
     // ここでも確認ダイアログだすなら、Restart関数をもうひとつつくって双方でよぶ
@@ -151,9 +167,7 @@ export default function RectangleApp() {
             min={5}
             max={Math.max(gridRowSize, gridColSize)}
             value={winCount}
-            onChange={(e) => {
-              setWinCount(Number(e.target.value));
-            }}
+            onChange={handleWinCountChange}
           />
         </div>
       )}
