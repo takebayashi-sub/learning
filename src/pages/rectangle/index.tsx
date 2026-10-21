@@ -56,18 +56,17 @@ export function RectangleApp() {
 
     // このタイミングで勝者がきまるからここで勝者判定されればよいね
     // ステータスも更新する
-    const gameResult = calculateWinner(nextSquares, winConditionCount);
 
-    console.log(winConditionCount);
+    const winner = calculateWinner(nextSquares, winConditionCount);
 
-    if (gameResult === 'X') {
+    if (winner === 'X') {
       setGameStatus('WIN');
-    } else if (gameResult === 'O') {
+    } else if (winner === 'O') {
       setGameStatus('LOSE');
-    } else if (gameResult === 'DRAW') {
-      setGameStatus('DRAW');
-    } else {
+    } else if (!nextSquares.every((row) => row.every((cell) => cell !== null))) {
       setGameStatus('PLAYING');
+    } else {
+      setGameStatus('DRAW');
     }
 
     setSquares(nextSquares);
@@ -235,7 +234,7 @@ function Board(props: BoardProps) {
 /**
  * 勝利判定
  */
-function calculateWinner(squares: Squares, winCount: number): CellValue | 'DRAW' {
+function calculateWinner(squares: Squares, winCount: number): CellValue {
   if (squares.length === 0 || !squares[0]) {
     return null;
   }
@@ -338,12 +337,5 @@ function calculateWinner(squares: Squares, winCount: number): CellValue | 'DRAW'
       }
     }
   }
-
-  // すべてのマスが埋まっているか判定（埋まっていれば引き分け）
-  const isDraw = squares.every((row) => row.every((cell) => cell !== null));
-  if (isDraw) {
-    return 'DRAW';
-  }
-
   return null;
 }
