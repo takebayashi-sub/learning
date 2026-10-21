@@ -9,7 +9,7 @@ export type Squares = CellValue[][];
 /**
  * ゲームステータス
  */
-export type GameStatus = 'READY' | 'PLAYING' | 'WIN' | 'LOSE';
+export type GameStatus = 'READY' | 'PLAYING' | 'WIN' | 'LOSE' | 'DRAW';
 
 /**
  * ひとつひとつのマス

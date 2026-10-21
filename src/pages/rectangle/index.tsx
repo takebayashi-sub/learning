@@ -7,12 +7,12 @@ export function RectangleApp() {
 
   // グリッドの選択肢用
   const minGridSizeRow = 3;
-  const maxGridSizeRow = 6;
+  const maxGridSizeRow = 9;
   const minGridSizeCol = 4;
-  const maxGridSizeCol = 7;
+  const maxGridSizeCol = 10;
 
   // 勝利条件を変更できるのはたてよこそれぞれ何マス以上か
-  const customWinCount = 5;
+  const minBoardSizeForCustomWin = 5;
 
   // 各種State
   const [gridRowSize, setGridRowSize] = useState(0);
@@ -20,22 +20,25 @@ export function RectangleApp() {
   const [gameStatus, setGameStatus] = useState<GameStatus>('READY');
   const [xIsNext, setXIsNext] = useState(true);
   const [squares, setSquares] = useState<Squares>([]);
-  const [winCount, setWinCount] = useState<number>(0);
+  const [winConditionCount, setWinConditionCount] = useState<number>(0);
 
   // 勝利カウントの更新 更新じゃなくて、resetかinitが適切　初期化しているので　countもわかりづらくてびみょ
-  const updateWinCount = (row: number, col: number) => {
-    const smallSize = Math.min(row, col);
-    if (row >= customWinCount && col >= customWinCount) {
-      setWinCount(customWinCount);
+  const initWinConditionCount = (row: number, col: number) => {
+    //const smallSize = Math.min(row, col);
+
+    /*if (row >= minBoardSizeForCustomWin && col >= minBoardSizeForCustomWin) {
+      setWinCount(minBoardSizeForCustomWin);
     } else {
       setWinCount(smallSize);
     }
+     */
 
     // row,col,customWinCountの最小値をとればいい　customWinCountも名前びみょう
+    setWinConditionCount(Math.min(row, col, minBoardSizeForCustomWin));
   };
 
   // サイズ変更、リスタート時の共通初期化処理 restart
-  const Restart = (newRowSize: number, newColSize: number) => {
+  const restart = (newRowSize: number, newColSize: number) => {
     setSquares(Array.from({ length: newRowSize }, () => Array(newColSize).fill(null)));
     setXIsNext(true);
     setGameStatus('READY');
@@ -43,7 +46,7 @@ export function RectangleApp() {
 
   // マスクリック時の処理
   const handleClick = (row: number, col: number) => {
-    if (squares[row]?.[col] !== null || gameStatus === 'WIN' || gameStatus === 'LOSE') {
+    if (squares[row]?.[col] !== null || gameStatus === 'WIN' || gameStatus === 'LOSE' || gameStatus === 'DRAW') {
       return;
     }
     // 配列をコピーする
@@ -53,14 +56,16 @@ export function RectangleApp() {
 
     // このタイミングで勝者がきまるからここで勝者判定されればよいね
     // ステータスも更新する
-    const winner = calculateWinner(nextSquares, winCount);
+    const gameResult = calculateWinner(nextSquares, winConditionCount);
 
-    console.log(winCount);
+    console.log(winConditionCount);
 
-    if (winner === 'X') {
+    if (gameResult === 'X') {
       setGameStatus('WIN');
-    } else if (winner === 'O') {
+    } else if (gameResult === 'O') {
       setGameStatus('LOSE');
+    } else if (gameResult === 'DRAW') {
+      setGameStatus('DRAW');
     } else {
       setGameStatus('PLAYING');
     }
@@ -70,9 +75,7 @@ export function RectangleApp() {
   };
 
   // リセット確認 1行でもかけるね　、かいてみる
-  const confirmReset = (): boolean => {
-    return window.confirm('サイズを変更するとゲームがリセットされます。\nよろしいですか？');
-  };
+  const confirmReset = (): boolean => window.confirm('サイズを変更するとゲームがリセットされます。\nよろしいですか？');
 
   // サイズ変更時の処理
   const handleRowSizeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -85,9 +88,9 @@ export function RectangleApp() {
     setGridRowSize(newRowSize);
 
     // 勝利カウントを更新
-    updateWinCount(newRowSize, gridColSize);
+    initWinConditionCount(newRowSize, gridColSize);
 
-    Restart(newRowSize, gridColSize);
+    restart(newRowSize, gridColSize);
   };
 
   const handleColSizeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -100,10 +103,10 @@ export function RectangleApp() {
     setGridColSize(newColSize);
 
     // 勝利カウントを更新
-    updateWinCount(gridRowSize, newColSize);
+    initWinConditionCount(gridRowSize, newColSize);
 
     // リスタート
-    Restart(gridRowSize, newColSize);
+    restart(gridRowSize, newColSize);
   };
 
   // 勝利条件変更時の処理
@@ -113,8 +116,8 @@ export function RectangleApp() {
         return;
       }
     }
-    setWinCount(Number(event.target.value));
-    Restart(gridRowSize, gridColSize);
+    setWinConditionCount(Number(event.target.value));
+    restart(gridRowSize, gridColSize);
   };
 
   // リセットボタン押下時の処理
@@ -123,14 +126,12 @@ export function RectangleApp() {
     // gridSizeを引数で->Restart関数が何をするものなのかが明確になる
 
     if (gameStatus === 'PLAYING') {
-      // 関数をよぶようにする
-      const result = window.confirm('ゲームをリセットしてもよろしいですか？');
-      if (!result) {
+      if (!confirmReset()) {
         return;
       }
     }
 
-    Restart(gridRowSize, gridColSize);
+    restart(gridRowSize, gridColSize);
   };
 
   const player =
@@ -138,7 +139,9 @@ export function RectangleApp() {
       ? `あなたの勝ちです！`
       : gameStatus === 'LOSE'
         ? 'ゲームに負けました。'
-        : `次の人: ${xIsNext ? 'X' : 'O'}`;
+        : gameStatus === 'DRAW'
+          ? '引き分けです。'
+          : `次の人: ${xIsNext ? 'X' : 'O'}`;
 
   // {[...Array(maxGridSizeRow - minGridSizeRow + 1)].map((_, index) => (ここの動き微妙なので他の書き方考える
   return (
@@ -149,34 +152,49 @@ export function RectangleApp() {
         たて
         <select className={styles.number} value={gridRowSize} onChange={handleRowSizeChange}>
           {!gridRowSize && <option value={0}>選択してね</option>}
-          {[...Array(maxGridSizeRow - minGridSizeRow + 1)].map((_, index) => (
-            <option key={index} value={index + minGridSizeRow}>
-              {index + minGridSizeRow}
-            </option>
-          ))}
+          {Array(maxGridSizeRow - minGridSizeRow + 1)
+            .fill(null)
+            .map((_, index) => {
+              const value = index + minGridSizeRow;
+              return (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              );
+            })}
         </select>
         × よこ
         <select className={styles.number} value={gridColSize} onChange={handleColSizeChange}>
           {!gridColSize && <option value={0}>選択してね</option>}
-          {[...Array(maxGridSizeCol - minGridSizeCol + 1)].map((_, index) => (
-            <option key={index} value={index + minGridSizeCol}>
-              {index + minGridSizeCol}
-            </option>
-          ))}
+          {Array(maxGridSizeCol - minGridSizeCol + 1)
+            .fill(null)
+            .map((_, index) => {
+              const value = index + minGridSizeCol;
+              return (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              );
+            })}
         </select>
       </div>
-      {gridRowSize >= customWinCount && gridColSize >= customWinCount && (
-        <div>
-          <label>何個連続で勝ちとする？</label>
-          <input
-            type="number"
-            min={customWinCount}
-            max={Math.max(gridRowSize, gridColSize)}
-            value={winCount}
-            onChange={handleWinCountChange}
-          />
-        </div>
-      )}
+      <div>
+        勝利条件（Xマス連続で勝利）
+        <input
+          type="number"
+          min={
+            Math.min(gridRowSize, gridColSize) > minBoardSizeForCustomWin
+              ? minBoardSizeForCustomWin
+              : Math.min(gridRowSize, gridColSize)
+          }
+          max={Math.min(gridRowSize, gridColSize)}
+          value={winConditionCount}
+          disabled={Math.min(gridRowSize, gridColSize) <= minBoardSizeForCustomWin}
+          onChange={handleWinCountChange}
+        />
+        <br />
+        ※縦横{minBoardSizeForCustomWin}マスより大きい場合、変更可能
+      </div>
       <hr />
       <div className={styles.player}>
         {player}
@@ -189,12 +207,14 @@ export function RectangleApp() {
 }
 
 // createやめる
-type CreateBoardProps = {
+type BoardProps = {
   variableSquare: Squares;
   onSquareClick: (row: number, col: number) => void;
 };
 
-function Board({ variableSquare, onSquareClick }: CreateBoardProps) {
+function Board(props: BoardProps) {
+  const { variableSquare, onSquareClick } = props;
+
   return (
     <table className={styles.board}>
       <tbody>
@@ -215,7 +235,7 @@ function Board({ variableSquare, onSquareClick }: CreateBoardProps) {
 /**
  * 勝利判定
  */
-function calculateWinner(squares: Squares, winCount: number): CellValue {
+function calculateWinner(squares: Squares, winCount: number): CellValue | 'DRAW' {
   if (squares.length === 0 || !squares[0]) {
     return null;
   }
@@ -318,5 +338,12 @@ function calculateWinner(squares: Squares, winCount: number): CellValue {
       }
     }
   }
+
+  // すべてのマスが埋まっているか判定（埋まっていれば引き分け）
+  const isDraw = squares.every((row) => row.every((cell) => cell !== null));
+  if (isDraw) {
+    return 'DRAW';
+  }
+
   return null;
 }
