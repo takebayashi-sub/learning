@@ -181,11 +181,7 @@ export function RectangleApp() {
         勝利条件（Xマス連続で勝利）
         <input
           type="number"
-          min={
-            Math.min(gridRowSize, gridColSize) > minBoardSizeForCustomWin
-              ? minBoardSizeForCustomWin
-              : Math.min(gridRowSize, gridColSize)
-          }
+          min={Math.min(gridRowSize, gridColSize, minBoardSizeForCustomWin)}
           max={Math.min(gridRowSize, gridColSize)}
           value={winConditionCount}
           disabled={Math.min(gridRowSize, gridColSize) <= minBoardSizeForCustomWin}
