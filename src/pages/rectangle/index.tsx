@@ -24,15 +24,6 @@ export function RectangleApp() {
 
   // 勝利カウントの更新 更新じゃなくて、resetかinitが適切　初期化しているので　countもわかりづらくてびみょ
   const initWinConditionCount = (row: number, col: number) => {
-    //const smallSize = Math.min(row, col);
-
-    /*if (row >= minBoardSizeForCustomWin && col >= minBoardSizeForCustomWin) {
-      setWinCount(minBoardSizeForCustomWin);
-    } else {
-      setWinCount(smallSize);
-    }
-     */
-
     // row,col,customWinCountの最小値をとればいい　customWinCountも名前びみょう
     setWinConditionCount(Math.min(row, col, minBoardSizeForCustomWin));
   };
@@ -188,7 +179,7 @@ export function RectangleApp() {
           onChange={handleWinCountChange}
         />
         <br />
-        ※縦横{minBoardSizeForCustomWin}マスより大きい場合、変更可能
+        ※縦横が{minBoardSizeForCustomWin}マスより大きい場合、変更可能です！
       </div>
       <hr />
       <div className={styles.player}>
