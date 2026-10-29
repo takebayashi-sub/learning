@@ -188,7 +188,7 @@ export function RectangleApp() {
           onChange={handleWinCountChange}
         />
         <br />
-        ※縦横{minBoardSizeForCustomWin}マスより大きい場合、変更可能
+        ※縦横が{minBoardSizeForCustomWin}マスより大きい場合、変更可能です！
       </div>
       <hr />
       <div className={styles.player}>
